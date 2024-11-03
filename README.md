@@ -1,3 +1,3 @@
 # GigaRepose
 <br>
-Author-Deimonmi Kyndiah
+Author-Deimonmi Kyndiah(deimon)
