@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jarvis - AI Assistant</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon"></div>
+                    <div class="logo-text">JARVIS</div>
+                </div>
+            </div>
+
+            <div class="sidebar-content">
+                <div class="search-box">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Search knowledge base...">
+                </div>
+
+                <nav class="nav-menu">
+                    <a href="#" class="nav-item active" data-view="chat">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span>Home</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="documents">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+                            <polyline points="13 2 13 9 20 9"/>
+                        </svg>
+                        <span>Documents</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="notes">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        <span>Notes</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="todos">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 11 12 14 22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                        <span>To-Do</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="chat-area">
+            <div class="chat-header">
+                <h2>Chat with Jarvis</h2>
+            </div>
+
+            <div id="chatMessages" class="chat-messages">
+                <div class="welcome-message">
+                    <h1> Welcome to Jarvis</h1>
+                    <p>Your AI-powered study assistant. Upload documents, ask questions, and get intelligent answers powered by advanced AI.</p>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="summarizeBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                    Summarize
+                </button>
+                <button id="flashcardsBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
+                        <polyline points="17 2 12 7 7 2"/>
+                    </svg>
+                    Flashcards
+                </button>
+                <button id="explainBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    Explain
+                </button>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Ask me anything...">
+                    <button id="sendBtn" class="send-button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="documentsPanel" class="documents-panel">
+        <div class="documents-header">
+            <h3>📄 Documents</h3>
+            <button class="close-btn" onclick="closePanel()">&times;</button>
+        </div>
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📤</div>
+                <p>Drop PDF or TXT files here or click to browse</p>
+                <button onclick="document.getElementById('fileInput').click()">Choose Files</button>
+                <input type="file" id="fileInput" accept=".pdf,.txt" multiple style="display: none;">
+            </div>
+        </div>
+        <div id="documentsList" class="documents-list"></div>
+        <div style="padding: 20px 32px; border-top: 1px solid var(--border);">
+            <button onclick="reIngestDocuments()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary));color:white;border:none;border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s;">
+                🔄 Re-Index All Documents
+            </button>
+        </div>
+    </div>
+
+    <div id="notesPanel" class="notes-panel">
+        <div class="notes-header">
+            <h3> Notes</h3>
+            <button class="close-btn" onclick="closePanel()">&times;</button>
+        </div>
+        <div class="notes-search">
+            <input type="text" id="notesSearch" placeholder="Search notes...">
+        </div>
+        <div id="notesList" class="notes-list"></div>
+        <div class="note-form hidden" id="noteForm">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="noteTitle" class="form-input">
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="noteCategory" class="form-select">
+                    <option value="General">General</option>
+                    <option value="Study">Study</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Work">Work</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Content</label>
+                <textarea id="noteContent" class="form-textarea"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn-primary" onclick="saveNote()">Save Note</button>
+                <button class="btn-secondary" onclick="cancelNoteEdit()">Cancel</button>
+            </div>
+        </div>
+        <button class="new-note-btn" id="newNoteBtn" onclick="showNewNoteForm()">+ New Note</button>
+    </div>
+
+    <div id="todoPanel" class="todo-panel">
+        <div class="todo-header">
+            <h3> To-Do List</h3>
+            <div id="todoStats"></div>
+            <button class="close-btn" onclick="closePanel()">&times;</button>
+        </div>
+        <div class="quick-add-container">
+            <form class="quick-add-form" onsubmit="quickAddTodo(event)">
+                <input type="text" id="quickAddTodo" placeholder="Add a new task...">
+                <button type="submit" id="quickAddBtn">Add</button>
+            </form>
+        </div>
+        <div id="todosList" class="todo-list">
+            <div class="todo-section">
+                <h4>Active Tasks</h4>
+                <div id="activeTodos"></div>
+            </div>
+            <div class="todo-section">
+                <h4>Completed</h4>
+                <div id="completedTodos"></div>
+            </div>
+        </div>
+        <div class="todo-footer">
+            <button id="clearCompleted" onclick="clearCompletedTodos()">Clear Completed</button>
+        </div>
+    </div>
+
+    <div id="customModal" class="custom-modal hidden">
+        <div class="custom-modal-content">
+            <h3 id="modalTitle">Add New Task</h3>
+            <input type="text" id="modalInput" placeholder="Enter task...">
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="confirmModal()">Add</button>
+                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Explain Modal -->
+    <div id="explainModal" class="custom-modal hidden">
+        <div class="custom-modal-content">
+            <h3>Explain Topic</h3>
+            <input type="text" id="explainTopicInput" placeholder="Enter topic to explain...">
+            <div class="modal-actions">
+                <button class="btn-primary" id="explainConfirmBtn">Explain</button>
+                <button class="btn-secondary" id="explainCancelBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/documents.js"></script>
+    <script src="/static/js/notes.js"></script>
+    <script src="/static/js/todos.js"></script>
+</body>
+</html>
