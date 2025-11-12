@@ -8,6 +8,15 @@
       "upload_date": "2025-11-10T11:20:26.932303",
       "path": "data\\quantitative_20251110_112026.pdf",
       "status": "uploaded"
+    },
+    {
+      "id": 2,
+      "filename": "Data_Interpretation.pdf",
+      "original_name": "Data_Interpretation.pdf",
+      "size": 4037190,
+      "upload_date": "2025-11-10T12:13:26.770047",
+      "path": "data\\Data_Interpretation.pdf",
+      "status": "uploaded"
     }
   ]
 }

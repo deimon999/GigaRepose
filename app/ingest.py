@@ -1,9 +1,20 @@
 import os
-from pinecone.grpc import PineconeGRPC as Pinecone, ServerlessSpec
 from tqdm import tqdm
 from dotenv import load_dotenv
 import glob
 from pathlib import Path
+
+# Import Pinecone with proper error handling
+try:
+    from pinecone.grpc import PineconeGRPC as Pinecone
+    from pinecone import ServerlessSpec
+except ImportError:
+    try:
+        from pinecone import Pinecone, ServerlessSpec
+    except ImportError:
+        print("Warning: Pinecone not available. Install with: pip install pinecone")
+        Pinecone = None
+        ServerlessSpec = None
 
 # Import sentence transformers with lazy loading
 SentenceTransformer = None

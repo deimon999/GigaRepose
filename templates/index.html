@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jarvis - AI Assistant</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Nexus - AI Assistant</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=999">
 </head>
 <body>
     <div class="app-container">
         <div class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <div class="logo-icon"></div>
-                    <div class="logo-text">JARVIS</div>
+                    <div class="logo-icon">🔮</div>
+                    <div class="logo-text">NEXUS</div>
                 </div>
             </div>
 
@@ -46,12 +49,25 @@
                         </svg>
                         <span>Notes</span>
                     </a>
-                    <a href="#" class="nav-item" data-view="todos">
+                                        <a href="#" class="nav-item" data-view="todos">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="9 11 12 14 22 4"/>
+                            <path d="M9 11l3 3L22 4"/>
                             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                         </svg>
                         <span>To-Do</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="pomodoro">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        <span>Pomodoro</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="bookmarks">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span>Bookmarks</span>
                     </a>
                 </nav>
             </div>
@@ -59,12 +75,12 @@
 
         <div class="chat-area">
             <div class="chat-header">
-                <h2>Chat with Jarvis</h2>
+                <h2>Chat with Nexus</h2>
             </div>
 
             <div id="chatMessages" class="chat-messages">
                 <div class="welcome-message">
-                    <h1> Welcome to Jarvis</h1>
+                    <h1>🔮 Welcome to Nexus</h1>
                     <p>Your AI-powered study assistant. Upload documents, ask questions, and get intelligent answers powered by advanced AI.</p>
                 </div>
             </div>
@@ -127,24 +143,25 @@
         <div id="documentsList" class="documents-list"></div>
         <div style="padding: 20px 32px; border-top: 1px solid var(--border);">
             <button onclick="reIngestDocuments()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary));color:white;border:none;border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s;">
-                🔄 Re-Index All Documents
+                🔄 INGEST ALL DOCUMENTS NOW
             </button>
         </div>
     </div>
 
     <div id="notesPanel" class="notes-panel">
         <div class="notes-header">
-            <h3> Notes</h3>
+            <h3>📝 Notes</h3>
             <button class="close-btn" onclick="closePanel()">&times;</button>
         </div>
         <div class="notes-search">
-            <input type="text" id="notesSearch" placeholder="Search notes...">
+            <input type="text" id="searchNotes" placeholder="Search notes...">
         </div>
         <div id="notesList" class="notes-list"></div>
-        <div class="note-form hidden" id="noteForm">
+        <div class="note-form hidden" id="noteFormContainer">
+            <h3 id="noteFormTitle" style="margin-bottom: 20px; color: var(--text-primary);">New Note</h3>
             <div class="form-group">
                 <label>Title</label>
-                <input type="text" id="noteTitle" class="form-input">
+                <input type="text" id="noteTitle" class="form-input" placeholder="Enter note title...">
             </div>
             <div class="form-group">
                 <label>Category</label>
@@ -157,40 +174,124 @@
             </div>
             <div class="form-group">
                 <label>Content</label>
-                <textarea id="noteContent" class="form-textarea"></textarea>
+                <textarea id="noteContent" class="form-textarea" placeholder="Write your note here..."></textarea>
             </div>
             <div class="form-actions">
                 <button class="btn-primary" onclick="saveNote()">Save Note</button>
                 <button class="btn-secondary" onclick="cancelNoteEdit()">Cancel</button>
             </div>
         </div>
-        <button class="new-note-btn" id="newNoteBtn" onclick="showNewNoteForm()">+ New Note</button>
+        <div class="notes-footer" style="padding: 20px 32px; border-top: 1px solid var(--border);">
+            <button class="new-note-btn" onclick="showNewNoteForm()">+ New Note</button>
+        </div>
     </div>
 
     <div id="todoPanel" class="todo-panel">
         <div class="todo-header">
-            <h3> To-Do List</h3>
-            <div id="todoStats"></div>
+            <h3>✅ To-Do List</h3>
             <button class="close-btn" onclick="closePanel()">&times;</button>
         </div>
+        <div style="padding: 16px 32px; border-bottom: 1px solid var(--border);">
+            <div id="todoStats" style="display: flex; gap: 8px; justify-content: center;"></div>
+        </div>
         <div class="quick-add-container">
-            <form class="quick-add-form" onsubmit="quickAddTodo(event)">
+            <div class="quick-add-form">
                 <input type="text" id="quickAddTodo" placeholder="Add a new task...">
-                <button type="submit" id="quickAddBtn">Add</button>
-            </form>
+                <button type="button" id="quickAddBtn">Add</button>
+            </div>
         </div>
         <div id="todosList" class="todo-list">
-            <div class="todo-section">
-                <h4>Active Tasks</h4>
-                <div id="activeTodos"></div>
-            </div>
-            <div class="todo-section">
-                <h4>Completed</h4>
-                <div id="completedTodos"></div>
-            </div>
+            <!-- Todos will be rendered here -->
         </div>
         <div class="todo-footer">
-            <button id="clearCompleted" onclick="clearCompletedTodos()">Clear Completed</button>
+            <button id="clearCompleted">Clear Completed</button>
+        </div>
+    </div>
+
+    <!-- Pomodoro Panel -->
+    <div id="pomodoroPanel" class="pomodoro-panel">
+        <div class="pomodoro-header">
+            <h3>⏱️ Pomodoro Timer</h3>
+            <button class="close-btn" onclick="closePanel()">&times;</button>
+        </div>
+        
+        <!-- Today's Stats -->
+        <div style="padding: 16px 32px; border-bottom: 1px solid var(--border);">
+            <div id="pomodoroStats" style="display: flex; gap: 16px; justify-content: center; align-items: center;"></div>
+        </div>
+        
+        <!-- Timer Display -->
+        <div class="pomodoro-timer-container">
+            <div class="pomodoro-circle-container">
+                <svg class="pomodoro-progress-ring" width="200" height="200">
+                    <circle
+                        class="pomodoro-progress-ring-bg"
+                        stroke="var(--border)"
+                        stroke-width="8"
+                        fill="transparent"
+                        r="90"
+                        cx="100"
+                        cy="100"
+                    />
+                    <circle
+                        id="pomodoroProgressCircle"
+                        class="pomodoro-progress-ring-circle"
+                        stroke="var(--accent-primary)"
+                        stroke-width="8"
+                        fill="transparent"
+                        r="90"
+                        cx="100"
+                        cy="100"
+                        style="stroke-dasharray: 565.48; stroke-dashoffset: 565.48;"
+                    />
+                </svg>
+                <div class="pomodoro-timer-content">
+                    <div id="pomodoroSessionType" class="pomodoro-session-type">🎯 Focus Session</div>
+                    <div id="pomodoroTimerDisplay" class="pomodoro-time-display">25:00</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Task Input -->
+        <div class="pomodoro-task-section">
+            <input 
+                type="text" 
+                id="pomodoroTaskInput" 
+                class="form-input" 
+                placeholder="What are you working on?"
+                style="margin-bottom: 20px;"
+            >
+        </div>
+        
+        <!-- Controls -->
+        <div class="pomodoro-controls">
+            <button id="pomodoroStartBtn" class="btn-pomodoro btn-pomodoro-start">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                Start
+            </button>
+            <button id="pomodoroPauseBtn" class="btn-pomodoro btn-pomodoro-pause" style="display:none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="6" y="4" width="4" height="16"/>
+                    <rect x="14" y="4" width="4" height="16"/>
+                </svg>
+                Pause
+            </button>
+            <button id="pomodoroResetBtn" class="btn-pomodoro btn-pomodoro-reset">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                    <path d="M21 3v5h-5"/>
+                </svg>
+                Reset
+            </button>
+            <button id="pomodoroSkipBtn" class="btn-pomodoro btn-pomodoro-skip">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 4 15 12 5 20 5 4"/>
+                    <line x1="19" y1="5" x2="19" y2="19"/>
+                </svg>
+                Skip
+            </button>
         </div>
     </div>
 
@@ -205,21 +306,81 @@
         </div>
     </div>
 
+    <!-- Bookmarks Panel -->
+    <div id="bookmarksPanel" class="bookmarks-panel">
+        <div class="bookmarks-header">
+            <h3>🔖 Bookmarks</h3>
+            <button class="close-btn" onclick="closePanel()">&times;</button>
+        </div>
+        
+        <!-- Bookmarks List -->
+        <div id="bookmarksList" class="bookmarks-list"></div>
+        
+        <!-- Bookmark Form -->
+        <div id="bookmarkFormContainer" class="bookmark-form-container hidden">
+            <div class="bookmark-form-header">
+                <h4 id="bookmarkFormTitle">New Bookmark</h4>
+            </div>
+            <div class="bookmark-form-content">
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="bookmarkTitle" class="form-input" placeholder="Enter title...">
+                </div>
+                <div class="form-group">
+                    <label>URL *</label>
+                    <input type="url" id="bookmarkUrl" class="form-input" placeholder="https://example.com">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="bookmarkDescription" class="form-textarea" placeholder="Optional description..." rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="bookmarkCategory" class="form-select">
+                        <option value="General">General</option>
+                        <option value="Work">Work</option>
+                        <option value="Learning">Learning</option>
+                        <option value="Tools">Tools</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Resources">Resources</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tags</label>
+                    <input type="text" id="bookmarkTags" class="form-input" placeholder="tag1, tag2, tag3">
+                </div>
+                <div class="form-actions">
+                    <button class="btn-primary" onclick="saveBookmark()">Save</button>
+                    <button class="btn-secondary" onclick="cancelBookmarkEdit()">Cancel</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add New Button -->
+        <div class="bookmarks-footer" style="padding: 20px 32px; border-top: 1px solid var(--border);">
+            <button class="new-bookmark-btn" onclick="showNewBookmarkForm()">+ New Bookmark</button>
+        </div>
+    </div>
+
     <!-- Explain Modal -->
     <div id="explainModal" class="custom-modal hidden">
-        <div class="custom-modal-content">
-            <h3>Explain Topic</h3>
-            <input type="text" id="explainTopicInput" placeholder="Enter topic to explain...">
+        <div class="modal-content">
+            <div class="modal-icon">💡</div>
+            <h3 class="modal-title">Explain Topic</h3>
+            <input type="text" id="explainTopicInput" class="form-input" placeholder="Enter topic to explain..." style="margin-bottom: 20px;">
             <div class="modal-actions">
-                <button class="btn-primary" id="explainConfirmBtn">Explain</button>
-                <button class="btn-secondary" id="explainCancelBtn">Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="explainConfirmBtn">Explain</button>
+                <button class="modal-btn modal-btn-secondary" id="explainCancelBtn">Cancel</button>
             </div>
         </div>
     </div>
 
+    <script src="/static/js/modals.js"></script>
     <script src="/static/js/app.js"></script>
     <script src="/static/js/documents.js"></script>
     <script src="/static/js/notes.js"></script>
     <script src="/static/js/todos.js"></script>
+    <script src="/static/js/pomodoro.js"></script>
+    <script src="/static/js/bookmarks.js"></script>
 </body>
 </html>

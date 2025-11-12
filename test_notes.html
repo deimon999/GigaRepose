@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notes Test</title>
+    <style>
+        body { background: #1a1a2e; color: white; font-family: Arial; padding: 20px; }
+        .hidden { display: none !important; }
+        #noteFormContainer { background: #16213e; padding: 20px; margin: 20px 0; border-radius: 10px; }
+        input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; background: #0f3460; color: white; border: 1px solid #4ecca3; border-radius: 5px; }
+        button { padding: 12px 24px; margin: 5px; background: #4ecca3; color: #1a1a2e; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #3db88f; }
+        .btn-secondary { background: #555; color: white; }
+        .log { background: #0f3460; padding: 10px; margin: 10px 0; border-left: 3px solid #4ecca3; font-family: monospace; }
+        .error { border-left-color: #ff6b6b; color: #ff6b6b; }
+        .success { border-left-color: #4ecca3; color: #4ecca3; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Notes Functionality Test</h1>
+    <p>This page tests the notes functionality independently</p>
+    
+    <button onclick="testShowNewNoteForm()">TEST: Click New Note</button>
+    <button onclick="clearLogs()">Clear Logs</button>
+    
+    <div id="logs"></div>
+    
+    <div id="notesList" class="notes-list">
+        <p>📝 Notes list visible</p>
+    </div>
+    
+    <div class="note-form hidden" id="noteFormContainer">
+        <h3 id="noteFormTitle">New Note</h3>
+        <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="noteTitle" placeholder="Enter note title...">
+        </div>
+        <div class="form-group">
+            <label>Category</label>
+            <select id="noteCategory">
+                <option value="General">General</option>
+                <option value="Study">Study</option>
+                <option value="Personal">Personal</option>
+                <option value="Work">Work</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Content</label>
+            <textarea id="noteContent" rows="5" placeholder="Write your note here..."></textarea>
+        </div>
+        <div class="form-actions">
+            <button class="btn-primary" id="saveNoteBtn" onclick="testSaveNote()">Save Note</button>
+            <button class="btn-secondary" id="cancelNoteBtn" onclick="testCancelNote()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        let currentEditingNoteId = null;
+
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log ${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.insertBefore(logEntry, logsDiv.firstChild);
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+            log('Logs cleared', 'info');
+        }
+
+        function testShowNewNoteForm() {
+            log('🔵 testShowNewNoteForm() called', 'info');
+            currentEditingNoteId = null;
+            
+            const titleEl = document.getElementById('noteTitle');
+            const contentEl = document.getElementById('noteContent');
+            const categoryEl = document.getElementById('noteCategory');
+            const formContainerEl = document.getElementById('noteFormContainer');
+            const notesListEl = document.getElementById('notesList');
+            const formTitleEl = document.getElementById('noteFormTitle');
+            
+            log(`Form elements found: 
+                - titleEl: ${!!titleEl}
+                - contentEl: ${!!contentEl}
+                - categoryEl: ${!!categoryEl}
+                - formContainerEl: ${!!formContainerEl}
+                - notesListEl: ${!!notesListEl}
+                - formTitleEl: ${!!formTitleEl}`, 'info');
+            
+            if (titleEl) {
+                titleEl.value = '';
+                log('✓ Cleared title field', 'success');
+            } else {
+                log('✗ Title element not found!', 'error');
+            }
+            
+            if (contentEl) {
+                contentEl.value = '';
+                log('✓ Cleared content field', 'success');
+            } else {
+                log('✗ Content element not found!', 'error');
+            }
+            
+            if (categoryEl) {
+                categoryEl.value = 'General';
+                log('✓ Set category to General', 'success');
+            } else {
+                log('✗ Category element not found!', 'error');
+            }
+            
+            if (formContainerEl) {
+                formContainerEl.classList.remove('hidden');
+                log('✓ Showing form container', 'success');
+            } else {
+                log('✗ Form container not found!', 'error');
+            }
+            
+            if (notesListEl) {
+                notesListEl.classList.add('hidden');
+                log('✓ Hiding notes list', 'success');
+            } else {
+                log('✗ Notes list not found!', 'error');
+            }
+            
+            if (formTitleEl) {
+                formTitleEl.textContent = 'New Note';
+                log('✓ Set form title to "New Note"', 'success');
+            } else {
+                log('✗ Form title element not found!', 'error');
+            }
+            
+            log('🟢 Form should now be visible!', 'success');
+        }
+
+        function testSaveNote() {
+            const title = document.getElementById('noteTitle').value.trim() || 'Untitled Note';
+            const content = document.getElementById('noteContent').value.trim();
+            const category = document.getElementById('noteCategory').value;
+            
+            log(`🔵 Save button clicked!`, 'info');
+            log(`Title: "${title}"`, 'info');
+            log(`Content: "${content}"`, 'info');
+            log(`Category: "${category}"`, 'info');
+            
+            if (!content) {
+                log('✗ Content is empty!', 'error');
+                alert('Note content cannot be empty');
+                return;
+            }
+            
+            log('✓ Note data is valid - would save to server now', 'success');
+            log('In real app: POST /notes with this data', 'info');
+        }
+
+        function testCancelNote() {
+            log('🔵 Cancel button clicked', 'info');
+            currentEditingNoteId = null;
+            document.getElementById('noteFormContainer').classList.add('hidden');
+            document.getElementById('notesList').classList.remove('hidden');
+            log('✓ Form hidden, notes list shown', 'success');
+        }
+
+        // Initial log
+        log('✓ Test page loaded successfully!', 'success');
+        log('Click the "TEST: Click New Note" button above', 'info');
+    </script>
+</body>
+</html>

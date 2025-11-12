@@ -20,7 +20,8 @@ class LLMClient:
     def get_completion_sync(self, prompt, history=None, system_prompt=None):
         """Get a completion from the LLM synchronously"""
         if system_prompt is None:
-            system_prompt = "You are Jarvis, a helpful AI assistant. Provide clear, concise, and accurate responses."
+            # Default system prompt if none provided
+            system_prompt = "You are Nexus, a helpful AI assistant. Provide clear, concise, and accurate responses."
         
         # Build messages array
         messages = [{"role": "system", "content": system_prompt}]

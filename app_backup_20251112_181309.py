@@ -1,11 +1,9 @@
-﻿import os
+import os
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from pathlib import Path
-import time
-from functools import wraps
 
 # Load environment variables
 load_dotenv()
@@ -19,66 +17,38 @@ UPLOAD_FOLDER = 'data'
 ALLOWED_EXTENSIONS = {'pdf', 'txt'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # Cache static files for 1 year
 
 # Ensure upload folder exists
 Path(UPLOAD_FOLDER).mkdir(exist_ok=True)
-
-# Performance monitoring decorator
-def monitor_performance(route_name):
-    """Decorator to monitor route performance"""
-    def decorator(f):
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            start_time = time.time()
-            result = f(*args, **kwargs)
-            end_time = time.time()
-            duration = (end_time - start_time) * 1000  # Convert to ms
-            if duration > 1000:  # Log slow requests (>1s)
-                print(f"⚠️  SLOW REQUEST: {route_name} took {duration:.2f}ms")
-            elif duration > 100:  # Log moderate requests (>100ms)
-                print(f"ℹ️  {route_name} took {duration:.2f}ms")
-            return result
-        return wrapped
-    return decorator
 
 # Import components (with graceful fallback for development)
 try:
     from app.llm_client import LLMClient
     llm_client = LLMClient()
-    print("âœ“ LLM client initialized successfully")
+    print("✓ LLM client initialized successfully")
 except Exception as e:
-    print(f"âš  Warning: Could not initialize LLM client: {e}")
+    print(f"⚠ Warning: Could not initialize LLM client: {e}")
 
 # Initialize Bookmarks Database
 try:
     from app import bookmarks_db
     bookmarks_db.init_db()
 except Exception as e:
-    print(f"âš  Warning: Could not initialize Bookmarks database: {e}")
+    print(f"⚠ Warning: Could not initialize Bookmarks database: {e}")
 
 # Initialize Pomodoro Database
 try:
     from app import pomodoro_db
     pomodoro_db.init_db()
 except Exception as e:
-    print(f"âš  Warning: Could not initialize Pomodoro database: {e}")
-
-# Initialize Notes Database
-try:
-    from app.notes_db import NotesDatabase
-    notes_db = NotesDatabase()
-    print("✓ Notes database initialized: jarvis_notes.db")
-except Exception as e:
-    print(f"⚠ Warning: Could not initialize Notes database: {e}")
-    notes_db = None
+    print(f"⚠ Warning: Could not initialize Pomodoro database: {e}")
 
 # Initialize Todo Database
 try:
     from app.todo_db import TodoDatabase
     todo_db = TodoDatabase()
 except Exception as e:
-    print(f"âš  Warning: Could not initialize Todo database: {e}")
+    print(f"⚠ Warning: Could not initialize Todo database: {e}")
     todo_db = None
 
 # Retriever is optional - will work without it
@@ -88,20 +58,20 @@ if os.getenv("ENABLE_RETRIEVER") == "1":
     try:
         from app.retriever import Retriever
         retriever = Retriever()
-        print("âœ“ Retriever initialized successfully")
+        print("✓ Retriever initialized successfully")
     except Exception as e:
-        print(f"âš  Warning: Could not initialize retriever (will work without document search): {e}")
+        print(f"⚠ Warning: Could not initialize retriever (will work without document search): {e}")
         retriever = None
 else:
-    print("â„¹ Document search disabled (set ENABLE_RETRIEVER=1 to enable)")
+    print("ℹ Document search disabled (set ENABLE_RETRIEVER=1 to enable)")
 
 # Initialize document manager
 try:
     from app.document_manager import DocumentManager
     doc_manager = DocumentManager()
-    print("âœ“ Document manager initialized successfully")
+    print("✓ Document manager initialized successfully")
 except Exception as e:
-    print(f"âš  Warning: Could not initialize document manager: {e}")
+    print(f"⚠ Warning: Could not initialize document manager: {e}")
     doc_manager = None
 
 @app.route('/')
@@ -119,7 +89,6 @@ def health():
     })
 
 @app.route('/chat', methods=['POST'])
-@monitor_performance('POST /chat')
 def chat():
     """Handle chat requests"""
     try:
@@ -146,7 +115,7 @@ def chat():
 IMPORTANT FORMATTING RULES:
 - Start with a clear heading
 - Each bullet point must be on a NEW LINE
-- Use simple bullet points (â€¢) or numbers (1., 2., 3.)
+- Use simple bullet points (•) or numbers (1., 2., 3.)
 - One concept per line
 - Keep each point SHORT (max 10-15 words)
 - Add blank lines between major sections
@@ -154,18 +123,18 @@ IMPORTANT FORMATTING RULES:
 - NO multiple points on same line
 
 Example response format:
-ðŸ“š Number System Topics:
+📚 Number System Topics:
 
-1ï¸âƒ£ Natural Numbers
-â€¢ Counting numbers: 1, 2, 3...
+1️⃣ Natural Numbers
+• Counting numbers: 1, 2, 3...
 
-2ï¸âƒ£ Prime Numbers
-â€¢ Divisible only by 1 and itself
-â€¢ Examples: 2, 3, 5, 7, 11
+2️⃣ Prime Numbers
+• Divisible only by 1 and itself
+• Examples: 2, 3, 5, 7, 11
 
-3ï¸âƒ£ Even & Odd
-â€¢ Even: ends in 0, 2, 4, 6, 8
-â€¢ Odd: ends in 1, 3, 5, 7, 9
+3️⃣ Even & Odd
+• Even: ends in 0, 2, 4, 6, 8
+• Odd: ends in 1, 3, 5, 7, 9
 
 Keep it simple, clean, and well-spaced."""
         if context:
@@ -181,16 +150,16 @@ Keep it simple, clean, and well-spaced."""
             
             # Post-process response to ensure proper line breaks
             # Add line breaks after bullet points and numbers
-            response = response.replace('â€¢ ', '\nâ€¢ ')
-            response = response.replace('1ï¸âƒ£', '\n\n1ï¸âƒ£')
-            response = response.replace('2ï¸âƒ£', '\n\n2ï¸âƒ£')
-            response = response.replace('3ï¸âƒ£', '\n\n3ï¸âƒ£')
-            response = response.replace('4ï¸âƒ£', '\n\n4ï¸âƒ£')
-            response = response.replace('5ï¸âƒ£', '\n\n5ï¸âƒ£')
-            response = response.replace('6ï¸âƒ£', '\n\n6ï¸âƒ£')
-            response = response.replace('7ï¸âƒ£', '\n\n7ï¸âƒ£')
-            response = response.replace('8ï¸âƒ£', '\n\n8ï¸âƒ£')
-            response = response.replace('9ï¸âƒ£', '\n\n9ï¸âƒ£')
+            response = response.replace('• ', '\n• ')
+            response = response.replace('1️⃣', '\n\n1️⃣')
+            response = response.replace('2️⃣', '\n\n2️⃣')
+            response = response.replace('3️⃣', '\n\n3️⃣')
+            response = response.replace('4️⃣', '\n\n4️⃣')
+            response = response.replace('5️⃣', '\n\n5️⃣')
+            response = response.replace('6️⃣', '\n\n6️⃣')
+            response = response.replace('7️⃣', '\n\n7️⃣')
+            response = response.replace('8️⃣', '\n\n8️⃣')
+            response = response.replace('9️⃣', '\n\n9️⃣')
             response = response.strip()  # Remove leading/trailing whitespace
             
             return jsonify({
@@ -475,98 +444,177 @@ def ingest_all_documents():
 
 # ============= NOTES API ENDPOINTS =============
 
-@app.route('/notes', methods=['GET'])
-@monitor_performance('GET /notes')
-def get_notes():
-    """Get all notes"""
+@app.route('/bookmarks', methods=['GET'])
+def get_bookmarks():
+    """Get all bookmarks"""
     try:
-        if not notes_db:
-            return jsonify({'error': 'Notes database not available'}), 503
-        
-        notes = notes_db.get_all_notes()
-        return jsonify({'notes': notes, 'status': 'success'})
+        from app import bookmarks_db
+        bookmarks = bookmarks_db.get_all_bookmarks()
+        return jsonify({'bookmarks': bookmarks, 'status': 'success'})
     except Exception as e:
-        print(f"Error getting notes: {e}")
+        print(f"Error getting bookmarks: {e}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/notes', methods=['POST'])
-def create_note():
-    """Create a new note"""
+@app.route('/bookmarks', methods=['POST'])
+def create_bookmark():
+    """Create a new bookmark"""
     try:
-        if not notes_db:
-            return jsonify({'error': 'Notes database not available'}), 503
-        
+        from app import bookmarks_db
         data = request.json
-        title = data.get('title', 'Untitled')
-        content = data.get('content', '')
+        title = data.get('title', 'Untitled Bookmark')
+        conversation = data.get('conversation', '')
         category = data.get('category', 'General')
+        tags = data.get('tags', '')
         
-        if not content:
-            return jsonify({'error': 'Note content cannot be empty'}), 400
+        if not conversation:
+            return jsonify({'error': 'Bookmark conversation cannot be empty'}), 400
         
-        note_id = notes_db.create_note(title, content, category)
+        bookmark_id = bookmarks_db.add_bookmark(title, conversation, category, tags)
         
         return jsonify({
-            'message': 'Note created successfully',
-            'note_id': note_id,
+            'message': 'Bookmark saved successfully',
+            'bookmark_id': bookmark_id,
             'status': 'success'
         })
     except Exception as e:
-        print(f"Error creating note: {e}")
+        print(f"Error creating bookmark: {e}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/notes/<int:note_id>', methods=['GET'])
-def get_note(note_id):
-    """Get a specific note"""
+@app.route('/bookmarks/<int:bookmark_id>', methods=['GET'])
+def get_bookmark(bookmark_id):
+    """Get a specific bookmark by ID"""
     try:
-        if not notes_db:
-            return jsonify({'error': 'Notes database not available'}), 503
+        from app import bookmarks_db
+        bookmark = bookmarks_db.get_bookmark(bookmark_id)
         
-        note = notes_db.get_note_by_id(note_id)
-        if note:
-            return jsonify({'note': note, 'status': 'success'})
-        return jsonify({'error': 'Note not found'}), 404
+        if bookmark:
+            return jsonify({'bookmark': bookmark, 'status': 'success'})
+        else:
+            return jsonify({'error': 'Bookmark not found'}), 404
     except Exception as e:
-        print(f"Error getting note: {e}")
+        print(f"Error getting bookmark: {e}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/notes/<int:note_id>', methods=['PUT'])
-def update_note(note_id):
-    """Update a note"""
+@app.route('/bookmarks/<int:bookmark_id>', methods=['PUT'])
+def update_bookmark(bookmark_id):
+    """Update an existing bookmark"""
     try:
-        if not notes_db:
-            return jsonify({'error': 'Notes database not available'}), 503
-        
+        from app import bookmarks_db
         data = request.json
         title = data.get('title')
-        content = data.get('content')
+        conversation = data.get('conversation')
         category = data.get('category')
+        tags = data.get('tags')
         
-        notes_db.update_note(note_id, title, content, category)
+        bookmarks_db.update_bookmark(bookmark_id, title, conversation, category, tags)
         
         return jsonify({
-            'message': 'Note updated successfully',
+            'message': 'Bookmark updated successfully',
             'status': 'success'
         })
     except Exception as e:
-        print(f"Error updating note: {e}")
+        print(f"Error updating bookmark: {e}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/notes/<int:note_id>', methods=['DELETE'])
-def delete_note(note_id):
-    """Delete a note"""
+@app.route('/bookmarks/<int:bookmark_id>', methods=['DELETE'])
+def delete_bookmark(bookmark_id):
+    """Delete a bookmark"""
     try:
-        if not notes_db:
-            return jsonify({'error': 'Notes database not available'}), 503
-        
-        notes_db.delete_note(note_id)
+        from app import bookmarks_db
+        bookmarks_db.delete_bookmark(bookmark_id)
         
         return jsonify({
-            'message': 'Note deleted successfully',
+            'message': 'Bookmark deleted successfully',
             'status': 'success'
         })
     except Exception as e:
-        print(f"Error deleting note: {e}")
+        print(f"Error deleting bookmark: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/bookmarks/search', methods=['GET'])
+def search_bookmarks():
+    """Search bookmarks by query"""
+    try:
+        from app import bookmarks_db
+        query = request.args.get('q', '')
+        bookmarks = bookmarks_db.search_bookmarks(query)
+        return jsonify({'bookmarks': bookmarks, 'status': 'success'})
+    except Exception as e:
+        print(f"Error searching bookmarks: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# ============== POMODORO ROUTES ==============
+@app.route('/pomodoro/start', methods=['POST'])
+def start_pomodoro():
+    """Start a new pomodoro session"""
+    try:
+        from app import pomodoro_db
+        data = request.json
+        task_name = data.get('task_name', 'Study Session')
+        duration = data.get('duration', 25)
+        session_type = data.get('session_type', 'work')
+        
+        session_id = pomodoro_db.start_session(task_name, duration, session_type)
+        
+        return jsonify({
+            'message': 'Pomodoro session started',
+            'session_id': session_id,
+            'status': 'success'
+        })
+    except Exception as e:
+        print(f"Error starting pomodoro: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/pomodoro/complete/<int:session_id>', methods=['POST'])
+def complete_pomodoro(session_id):
+    """Complete a pomodoro session"""
+    try:
+        from app import pomodoro_db
+        pomodoro_db.complete_session(session_id)
+        
+        return jsonify({
+            'message': 'Pomodoro session completed',
+            'status': 'success'
+        })
+    except Exception as e:
+        print(f"Error completing pomodoro: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/pomodoro/stats', methods=['GET'])
+def get_pomodoro_stats():
+    """Get today's pomodoro statistics"""
+    try:
+        from app import pomodoro_db
+        stats = pomodoro_db.get_today_stats()
+        return jsonify({'stats': stats, 'status': 'success'})
+    except Exception as e:
+        print(f"Error getting pomodoro stats: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/pomodoro/recent', methods=['GET'])
+def get_recent_pomodoros():
+    """Get recent pomodoro sessions"""
+    try:
+        from app import pomodoro_db
+        sessions = pomodoro_db.get_recent_sessions()
+        return jsonify({'sessions': sessions, 'status': 'success'})
+    except Exception as e:
+        print(f"Error getting recent pomodoros: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/pomodoro/<int:session_id>', methods=['DELETE'])
+def delete_pomodoro(session_id):
+    """Delete a pomodoro session"""
+    try:
+        from app import pomodoro_db
+        pomodoro_db.delete_session(session_id)
+        
+        return jsonify({
+            'message': 'Pomodoro session deleted',
+            'status': 'success'
+        })
+    except Exception as e:
+        print(f"Error deleting pomodoro: {e}")
         return jsonify({'error': str(e)}), 500
 
 """
@@ -579,7 +627,6 @@ def search_notes():
 # ============= TODO API ENDPOINTS =============
 
 @app.route('/todos', methods=['GET'])
-@monitor_performance('GET /todos')
 def get_todos():
     """Get all todos"""
     try:
@@ -719,215 +766,6 @@ def delete_completed_todos():
         return jsonify({'error': str(e)}), 500
 
 
-# ============== POMODORO ROUTES ==============
-@app.route('/pomodoro/start', methods=['POST'])
-def start_pomodoro():
-    """Start a new pomodoro session"""
-    try:
-        from app import pomodoro_db
-        data = request.get_json()
-        task_name = data.get('task_name', 'Focus Session')
-        duration = data.get('duration', 25)
-        session_type = data.get('session_type', 'work')
-        
-        session_id = pomodoro_db.start_session(task_name, duration, session_type)
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Pomodoro session started',
-            'session_id': session_id
-        })
-    except Exception as e:
-        print(f"Error starting pomodoro: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
-
-@app.route('/pomodoro/complete/<int:session_id>', methods=['POST'])
-def complete_pomodoro(session_id):
-    """Complete a pomodoro session"""
-    try:
-        from app import pomodoro_db
-        pomodoro_db.complete_session(session_id)
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Pomodoro session completed',
-            'session_id': session_id
-        })
-    except Exception as e:
-        print(f"Error completing pomodoro: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
-
-@app.route('/pomodoro/stats', methods=['GET'])
-def get_pomodoro_stats():
-    """Get today's pomodoro statistics"""
-    try:
-        from app import pomodoro_db
-        stats = pomodoro_db.get_today_stats()
-        
-        return jsonify({
-            'status': 'success',
-            'stats': stats
-        })
-    except Exception as e:
-        print(f"Error getting pomodoro stats: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
-
-@app.route('/pomodoro/sessions', methods=['GET'])
-def get_pomodoro_sessions():
-    """Get recent pomodoro sessions"""
-    try:
-        from app import pomodoro_db
-        limit = request.args.get('limit', 10, type=int)
-        sessions = pomodoro_db.get_recent_sessions(limit)
-        
-        return jsonify({
-            'status': 'success',
-            'sessions': sessions
-        })
-    except Exception as e:
-        print(f"Error getting pomodoro sessions: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
-
-@app.route('/pomodoro/sessions/<int:session_id>', methods=['DELETE'])
-def delete_pomodoro_session(session_id):
-    """Delete a pomodoro session"""
-    try:
-        from app import pomodoro_db
-        pomodoro_db.delete_session(session_id)
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Session deleted'
-        })
-    except Exception as e:
-        print(f"Error deleting pomodoro session: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
-
-
-# ============== BOOKMARKS ROUTES ==============
-@app.route('/bookmarks', methods=['GET'])
-@monitor_performance('GET /bookmarks')
-def get_bookmarks():
-    """Get all bookmarks"""
-    try:
-        from app import bookmarks_db
-        bookmarks = bookmarks_db.get_all_bookmarks()
-        
-        return jsonify({
-            'status': 'success',
-            'bookmarks': bookmarks
-        })
-    except Exception as e:
-        print(f"Error getting bookmarks: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
-
-@app.route('/bookmarks', methods=['POST'])
-def create_bookmark():
-    """Create a new bookmark"""
-    try:
-        from app import bookmarks_db
-        data = request.get_json()
-        
-        title = data.get('title')
-        url = data.get('url')
-        description = data.get('description', '')
-        category = data.get('category', 'General')
-        tags = data.get('tags', '')
-        
-        if not title or not url:
-            return jsonify({'status': 'error', 'error': 'Title and URL are required'}), 400
-        
-        bookmark_id = bookmarks_db.add_bookmark(title, url, description, category, tags)
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Bookmark created',
-            'bookmark_id': bookmark_id
-        })
-    except Exception as e:
-        print(f"Error creating bookmark: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
-
-@app.route('/bookmarks/<int:bookmark_id>', methods=['GET'])
-def get_bookmark(bookmark_id):
-    """Get a specific bookmark"""
-    try:
-        from app import bookmarks_db
-        bookmark = bookmarks_db.get_bookmark(bookmark_id)
-        
-        if not bookmark:
-            return jsonify({'status': 'error', 'error': 'Bookmark not found'}), 404
-        
-        return jsonify({
-            'status': 'success',
-            'bookmark': bookmark
-        })
-    except Exception as e:
-        print(f"Error getting bookmark: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
-
-@app.route('/bookmarks/<int:bookmark_id>', methods=['PUT'])
-def update_bookmark(bookmark_id):
-    """Update a bookmark"""
-    try:
-        from app import bookmarks_db
-        data = request.get_json()
-        
-        title = data.get('title')
-        url = data.get('url')
-        description = data.get('description', '')
-        category = data.get('category', 'General')
-        tags = data.get('tags', '')
-        
-        if not title or not url:
-            return jsonify({'status': 'error', 'error': 'Title and URL are required'}), 400
-        
-        bookmarks_db.update_bookmark(bookmark_id, title, url, description, category, tags)
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Bookmark updated'
-        })
-    except Exception as e:
-        print(f"Error updating bookmark: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
-
-@app.route('/bookmarks/<int:bookmark_id>', methods=['DELETE'])
-def delete_bookmark(bookmark_id):
-    """Delete a bookmark"""
-    try:
-        from app import bookmarks_db
-        bookmarks_db.delete_bookmark(bookmark_id)
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Bookmark deleted'
-        })
-    except Exception as e:
-        print(f"Error deleting bookmark: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
-
-@app.route('/bookmarks/search', methods=['GET'])
-def search_bookmarks():
-    """Search bookmarks"""
-    try:
-        from app import bookmarks_db
-        query = request.args.get('q', '')
-        
-        if not query:
-            return jsonify({'status': 'error', 'error': 'Search query is required'}), 400
-        
-        bookmarks = bookmarks_db.search_bookmarks(query)
-        
-        return jsonify({
-            'status': 'success',
-            'bookmarks': bookmarks
-        })
-    except Exception as e:
-        print(f"Error searching bookmarks: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
-
-
 # ============= DEPRECATED: CALENDAR/EVENTS ROUTES - Replaced with Pomodoro =============
 # Note: These routes have been commented out. Use /pomodoro/* endpoints instead.
 """
@@ -937,7 +775,163 @@ def get_events():
 """
 
 if __name__ == '__main__':
-    print("🔮 Starting Nexus...")
-    print(f"🤖 Ollama URL: http://localhost:11434")
+    print("🤖 Starting Jarvis...")
+    print(f"📍 Ollama URL: http://localhost:11434")
+    print(f"🌐 Server running at: http://localhost:5000")
+    app.run(debug=False, host='0.0.0.0', port=5000, use_reloader=False)
+
+    """Get all events or upcoming events"""
+    try:
+        if not calendar_db:
+            return jsonify({'error': 'Calendar database not available'}), 503
+        
+        # Check if requesting upcoming only
+        upcoming_only = request.args.get('upcoming', 'false').lower() == 'true'
+        
+        if upcoming_only:
+            events = calendar_db.get_upcoming_events(limit=20)
+        else:
+            events = calendar_db.get_all_events()
+        
+        return jsonify({'events': events, 'status': 'success'})
+    except Exception as e:
+        print(f"Error getting events: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/events', methods=['POST'])
+def create_event():
+    """Create a new event"""
+    try:
+        if not calendar_db:
+            return jsonify({'error': 'Calendar database not available'}), 503
+        
+        data = request.json
+        title = data.get('title', 'Untitled Event')
+        description = data.get('description', '')
+        event_date = data.get('event_date')
+        event_time = data.get('event_time')
+        duration = data.get('duration', 60)
+        category = data.get('category', 'Study')
+        
+        if not event_date:
+            return jsonify({'error': 'Event date is required'}), 400
+        
+        event_id = calendar_db.create_event(title, event_date, event_time, description, duration, category)
+        
+        return jsonify({
+            'message': 'Event created successfully',
+            'event_id': event_id,
+            'status': 'success'
+        })
+    except Exception as e:
+        print(f"Error creating event: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/events/<int:event_id>', methods=['GET'])
+def get_event(event_id):
+    """Get a specific event by ID"""
+    try:
+        if not calendar_db:
+            return jsonify({'error': 'Calendar database not available'}), 503
+        
+        event = calendar_db.get_event_by_id(event_id)
+        
+        if event:
+            return jsonify({'event': event, 'status': 'success'})
+        else:
+            return jsonify({'error': 'Event not found'}), 404
+    except Exception as e:
+        print(f"Error getting event: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/events/<int:event_id>', methods=['PUT'])
+def update_event(event_id):
+    """Update an existing event"""
+    try:
+        if not calendar_db:
+            return jsonify({'error': 'Calendar database not available'}), 503
+        
+        data = request.json
+        title = data.get('title')
+        description = data.get('description')
+        event_date = data.get('event_date')
+        event_time = data.get('event_time')
+        duration = data.get('duration')
+        category = data.get('category')
+        
+        success = calendar_db.update_event(event_id, title, description, event_date, event_time, duration, category)
+        
+        if success:
+            return jsonify({
+                'message': 'Event updated successfully',
+                'status': 'success'
+            })
+        else:
+            return jsonify({'error': 'Event not found'}), 404
+    except Exception as e:
+        print(f"Error updating event: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/events/<int:event_id>/toggle', methods=['POST'])
+def toggle_event_completed(event_id):
+    """Toggle event completed status"""
+    try:
+        if not calendar_db:
+            return jsonify({'error': 'Calendar database not available'}), 503
+        
+        success = calendar_db.toggle_completed(event_id)
+        
+        if success:
+            return jsonify({
+                'message': 'Event status toggled',
+                'status': 'success'
+            })
+        else:
+            return jsonify({'error': 'Event not found'}), 404
+    except Exception as e:
+        print(f"Error toggling event: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/events/<int:event_id>', methods=['DELETE'])
+def delete_event(event_id):
+    """Delete an event"""
+    try:
+        if not calendar_db:
+            return jsonify({'error': 'Calendar database not available'}), 503
+        
+        success = calendar_db.delete_event(event_id)
+        
+        if success:
+            return jsonify({
+                'message': 'Event deleted successfully',
+                'status': 'success'
+            })
+        else:
+            return jsonify({'error': 'Event not found'}), 404
+    except Exception as e:
+        print(f"Error deleting event: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/events/date/<date>', methods=['GET'])
+def get_events_by_date(date):
+    """Get events for a specific date"""
+    try:
+        if not calendar_db:
+            return jsonify({'error': 'Calendar database not available'}), 503
+        
+        events = calendar_db.get_events_by_date(date)
+        
+        return jsonify({
+            'events': events,
+            'date': date,
+            'status': 'success'
+        })
+    except Exception as e:
+        print(f"Error getting events by date: {e}")
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    print("🤖 Starting Jarvis...")
+    print(f"📍 Ollama URL: http://localhost:11434")
     print(f"🌐 Server running at: http://localhost:5000")
     app.run(debug=False, host='0.0.0.0', port=5000, use_reloader=False)

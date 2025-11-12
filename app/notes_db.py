@@ -24,6 +24,22 @@ class NotesDatabase:
             )
         ''')
         
+        # Add indexes for better query performance
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_notes_category 
+            ON notes(category)
+        ''')
+        
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_notes_updated_at 
+            ON notes(updated_at DESC)
+        ''')
+        
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_notes_created_at 
+            ON notes(created_at DESC)
+        ''')
+        
         conn.commit()
         conn.close()
         print(f"✓ Notes database initialized: {self.db_path}")

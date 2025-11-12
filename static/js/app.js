@@ -149,7 +149,7 @@ function captureLastMessage(text) {
 
 document.getElementById('summarizeBtn').addEventListener('click', async () => {
     if (!lastAssistantMessage) {
-        alert('No message to summarize. Chat with Jarvis first!');
+        alert('No message to summarize. Chat with Nexus first!');
         return;
     }
     
@@ -172,7 +172,7 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
 
 document.getElementById('flashcardsBtn').addEventListener('click', async () => {
     if (!lastAssistantMessage) {
-        alert('No message to create flashcards from. Chat with Jarvis first!');
+        alert('No message to create flashcards from. Chat with Nexus first!');
         return;
     }
     
@@ -207,6 +207,14 @@ document.getElementById('explainBtn').addEventListener('click', () => {
     input.focus();
 });
 
+// Explain topic input - Submit on Enter key
+document.getElementById('explainTopicInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('explainConfirmBtn').click();
+    }
+});
+
 // Explain modal - Cancel button
 document.getElementById('explainCancelBtn').addEventListener('click', () => {
     document.getElementById('explainModal').classList.add('hidden');
@@ -218,13 +226,16 @@ document.getElementById('explainConfirmBtn').addEventListener('click', async () 
     const modal = document.getElementById('explainModal');
     
     if (!topic) {
+        if (typeof showToast === 'function') {
+            showToast('Please enter a topic to explain', 'error');
+        }
         return;
     }
     
     modal.classList.add('hidden');
     
     // Show loading message
-    addMessage(`🔍 Generating detailed explanation for: "${topic}"...`, 'assistant');
+    addMessage(`� Generating detailed explanation for: "${topic}"...`, 'assistant');
     
     try {
         const response = await fetch('/explain', {
@@ -260,9 +271,17 @@ document.getElementById('explainTopicInput').addEventListener('keypress', (e) =>
 });
 
 // Navigation functionality
+let isNavigating = false;
+
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', (e) => {
         e.preventDefault();
+        
+        // Prevent rapid clicks
+        if (isNavigating) {
+            return;
+        }
+        isNavigating = true;
         
         // Remove active class from all nav items
         document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -271,28 +290,60 @@ document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.add('active');
         
         // Close all panels first
-        document.querySelectorAll('.documents-panel, .notes-panel, .todo-panel').forEach(panel => {
+        document.querySelectorAll('.documents-panel, .notes-panel, .todo-panel, .pomodoro-panel, .bookmarks-panel').forEach(panel => {
             panel.classList.remove('active');
         });
         
-        // Get the view type
-        const view = item.getAttribute('data-view');
-        
-        // Open corresponding panel
-        if (view === 'documents') {
-            document.getElementById('documentsPanel').classList.add('active');
-        } else if (view === 'notes') {
-            document.getElementById('notesPanel').classList.add('active');
-        } else if (view === 'todos') {
-            document.getElementById('todoPanel').classList.add('active');
-        }
-        // 'chat' view just shows the main chat area (no panel)
+        // Small delay to allow transition
+        setTimeout(() => {
+            // Get the view type
+            const view = item.getAttribute('data-view');
+            
+            // Open corresponding panel
+            if (view === 'documents') {
+                document.getElementById('documentsPanel').classList.add('active');
+                // Ensure documents event listeners are set up when panel opens
+                if (typeof window.setupDocumentsEventListeners === 'function') {
+                    window.setupDocumentsEventListeners();
+                }
+            } else if (view === 'notes') {
+                document.getElementById('notesPanel').classList.add('active');
+                // Ensure notes event listeners are set up when panel opens
+                if (typeof window.setupNotesEventListeners === 'function') {
+                    window.setupNotesEventListeners();
+                }
+            } else if (view === 'todos') {
+                document.getElementById('todoPanel').classList.add('active');
+                // Ensure todos event listeners are set up when panel opens
+                if (typeof window.setupTodosEventListeners === 'function') {
+                    window.setupTodosEventListeners();
+                }
+            } else if (view === 'pomodoro') {
+                document.getElementById('pomodoroPanel').classList.add('active');
+                // Ensure pomodoro event listeners are set up when panel opens
+                if (typeof window.setupPomodoroEventListeners === 'function') {
+                    window.setupPomodoroEventListeners();
+                }
+            } else if (view === 'bookmarks') {
+                document.getElementById('bookmarksPanel').classList.add('active');
+                // Ensure bookmarks event listeners are set up when panel opens
+                if (typeof window.setupBookmarksEventListeners === 'function') {
+                    window.setupBookmarksEventListeners();
+                }
+            }
+            // 'chat' view just shows the main chat area (no panel)
+            
+            // Reset navigation lock after transition
+            setTimeout(() => {
+                isNavigating = false;
+            }, 100);
+        }, 50);
     });
 });
 
 // Close panel functionality
 function closePanel() {
-    document.querySelectorAll('.documents-panel, .notes-panel, .todo-panel').forEach(panel => {
+    document.querySelectorAll('.documents-panel, .notes-panel, .todo-panel, .pomodoro-panel, .bookmarks-panel').forEach(panel => {
         panel.classList.remove('active');
     });
     
@@ -306,7 +357,20 @@ document.querySelectorAll('.close-btn').forEach(btn => {
     btn.addEventListener('click', closePanel);
 });
 
-// Focus input on load
+// Close all panels on page load and set Home as active
 window.addEventListener('load', () => {
+    // Close all panels
+    document.querySelectorAll('.documents-panel, .notes-panel, .todo-panel, .pomodoro-panel, .bookmarks-panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
+    
+    // Set Home nav as active
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+    const homeNav = document.querySelector('.nav-item[data-view="chat"]');
+    if (homeNav) {
+        homeNav.classList.add('active');
+    }
+    
+    // Focus input
     messageInput.focus();
 });

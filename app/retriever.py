@@ -1,5 +1,14 @@
 import os
-from pinecone.grpc import PineconeGRPC as Pinecone
+
+# Import Pinecone with proper error handling
+try:
+    from pinecone.grpc import PineconeGRPC as Pinecone
+except ImportError:
+    try:
+        from pinecone import Pinecone
+    except ImportError:
+        print("Warning: Pinecone not available. Install with: pip install pinecone")
+        Pinecone = None
 
 class Retriever:
     def __init__(self):

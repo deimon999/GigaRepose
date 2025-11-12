@@ -23,6 +23,22 @@ class TodoDatabase:
             )
         ''')
         
+        # Add indexes for better query performance
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_todos_completed 
+            ON todos(completed)
+        ''')
+        
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_todos_priority 
+            ON todos(priority)
+        ''')
+        
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_todos_due_date 
+            ON todos(due_date)
+        ''')
+        
         conn.commit()
         conn.close()
         print(f"✓ Todo database initialized: {self.db_path}")

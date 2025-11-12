@@ -1,34 +1,35 @@
 // Todo Management
 let currentTodos = [];
+let todosListenersSetup = false;
 
-// Initialize todos when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    loadTodos();
-    setupTodoEventListeners();
-});
+console.log('Todos.js loaded');
 
-function setupTodoEventListeners() {
-    // Toggle todo panel
-    const todosToggle = document.getElementById('todosToggle');
-    if (todosToggle) {
-        todosToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            const todoPanel = document.getElementById('todoPanel');
-            todoPanel.classList.toggle('active');
-        });
+// This function will be called by app.js when Todos panel opens
+function setupTodosEventListeners() {
+    console.log('Setting up todos listeners...');
+    if (todosListenersSetup) {
+        console.log('Todos listeners already set up, just reloading data...');
+        loadTodos();
+        return;
     }
+    todosListenersSetup = true;
+    loadTodos();
     
     // Quick add todo
     const quickAddInput = document.getElementById('quickAddTodo');
     const quickAddBtn = document.getElementById('quickAddBtn');
     
     if (quickAddBtn) {
-        quickAddBtn.addEventListener('click', quickAddTodo);
+        quickAddBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            quickAddTodo();
+        });
     }
     
     if (quickAddInput) {
         quickAddInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 quickAddTodo();
             }
         });
@@ -56,17 +57,21 @@ async function loadTodos() {
 }
 
 function renderTodos() {
-    const todoContainer = document.getElementById('todoList');
-    if (!todoContainer) return;
+    const todoContainer = document.getElementById('todosList');
+    if (!todoContainer) {
+        console.error('todosList container not found');
+        return;
+    }
     
     const pendingTodos = currentTodos.filter(t => !t.completed);
     const completedTodos = currentTodos.filter(t => t.completed);
     
     if (currentTodos.length === 0) {
         todoContainer.innerHTML = `
-            <div class="empty-todos">
-                <p>✅ No tasks yet</p>
-                <p>Add your first task above!</p>
+            <div style="text-align:center;padding:40px;color:#888;">
+                <p style="font-size:3rem;">📝</p>
+                <p>No tasks yet</p>
+                <p style="font-size:0.9rem;margin-top:10px;">Add your first task above!</p>
             </div>
         `;
         return;
@@ -140,13 +145,24 @@ async function quickAddTodo() {
         
         if (data.status === 'success') {
             input.value = '';
-            loadTodos();
+            if (typeof showToast === 'function') {
+                showToast('Task added!', 'success');
+            }
+            await loadTodos();
         } else {
-            alert('Error adding todo: ' + data.error);
+            if (typeof showToast === 'function') {
+                showToast('Error adding task: ' + data.error, 'error');
+            } else {
+                alert('Error adding todo: ' + data.error);
+            }
         }
     } catch (error) {
         console.error('Error adding todo:', error);
-        alert('Failed to add todo');
+        if (typeof showToast === 'function') {
+            showToast('Failed to add task', 'error');
+        } else {
+            alert('Failed to add todo');
+        }
     }
 }
 
@@ -159,10 +175,17 @@ async function toggleTodo(todoId) {
         const data = await response.json();
         
         if (data.status === 'success') {
-            loadTodos();
+            await loadTodos();
+        } else {
+            if (typeof showToast === 'function') {
+                showToast('Error toggling task', 'error');
+            }
         }
     } catch (error) {
         console.error('Error toggling todo:', error);
+        if (typeof showToast === 'function') {
+            showToast('Failed to toggle task', 'error');
+        }
     }
 }
 
@@ -181,13 +204,24 @@ async function deleteTodo(event, todoId) {
         const data = await response.json();
         
         if (data.status === 'success') {
-            loadTodos();
+            if (typeof showToast === 'function') {
+                showToast('Task deleted!', 'success');
+            }
+            await loadTodos();
         } else {
-            alert('Error deleting todo: ' + data.error);
+            if (typeof showToast === 'function') {
+                showToast('Error deleting task: ' + data.error, 'error');
+            } else {
+                alert('Error deleting todo: ' + data.error);
+            }
         }
     } catch (error) {
         console.error('Error deleting todo:', error);
-        alert('Failed to delete todo');
+        if (typeof showToast === 'function') {
+            showToast('Failed to delete task', 'error');
+        } else {
+            alert('Failed to delete todo');
+        }
     }
 }
 
@@ -195,7 +229,11 @@ async function clearCompletedTodos() {
     const completedCount = currentTodos.filter(t => t.completed).length;
     
     if (completedCount === 0) {
-        alert('No completed tasks to clear');
+        if (typeof showToast === 'function') {
+            showToast('No completed tasks to clear', 'info');
+        } else {
+            alert('No completed tasks to clear');
+        }
         return;
     }
     
@@ -211,12 +249,22 @@ async function clearCompletedTodos() {
         const data = await response.json();
         
         if (data.status === 'success') {
-            loadTodos();
-            console.log('✓', data.message);
+            if (typeof showToast === 'function') {
+                showToast(data.message || 'Completed tasks cleared!', 'success');
+            }
+            await loadTodos();
+        } else {
+            if (typeof showToast === 'function') {
+                showToast('Error clearing tasks', 'error');
+            }
         }
     } catch (error) {
         console.error('Error clearing completed todos:', error);
-        alert('Failed to clear completed tasks');
+        if (typeof showToast === 'function') {
+            showToast('Failed to clear completed tasks', 'error');
+        } else {
+            alert('Failed to clear completed tasks');
+        }
     }
 }
 
@@ -258,3 +306,10 @@ function formatDate(dateStr) {
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 }
+
+// Expose functions globally for onclick handlers and app.js
+window.setupTodosEventListeners = setupTodosEventListeners;
+window.quickAddTodo = quickAddTodo;
+window.toggleTodo = toggleTodo;
+window.deleteTodo = deleteTodo;
+window.clearCompletedTodos = clearCompletedTodos;

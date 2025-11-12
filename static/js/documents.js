@@ -3,10 +3,8 @@ const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const documentsList = document.getElementById('documentsList');
 
-// Load documents when panel opens
-document.addEventListener('DOMContentLoaded', () => {
-    loadDocuments();
-});
+// Don't auto-load on page load, wait for panel to open
+// Load documents when panel opens (called from app.js)
 
 // Upload area click to trigger file input
 if (uploadArea) {
@@ -176,31 +174,75 @@ function showNotification(message, type = 'info') {
 
 // Re-ingest all documents to Pinecone
 async function reIngestDocuments() {
-    if (!confirm('Re-index all documents? This will update the vector database with all uploaded documents.')) {
+    console.log('reIngestDocuments function called');
+    
+    showModal({
+        title: 'Re-ingest Documents?',
+        message: 'This will ingest all uploaded documents into the vector database. This may take a few minutes.',
+        icon: '🔄',
+        confirmText: 'Start Ingesting',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+            console.log('User confirmed, starting re-ingest...');
+            
+            // Show loading modal
+            const loadingModal = showLoadingModal('Ingesting documents... Please wait.');
+            
+            try {
+                console.log('Fetching /ingest-all endpoint...');
+                const response = await fetch('/ingest-all', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response received:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                // Remove loading modal
+                loadingModal.remove();
+                
+                if (response.ok) {
+                    showSuccessModal('All documents have been ingested successfully! You can now search across all uploaded documents.');
+                    showToast('Documents ingested successfully!', 'success');
+                } else {
+                    showErrorModal(data.error || 'Ingestion failed. Please check your Pinecone configuration and try again.');
+                    showToast(data.error || 'Ingestion failed', 'error');
+                }
+            } catch (error) {
+                console.error('Catch block error:', error);
+                // Remove loading modal
+                loadingModal.remove();
+                showErrorModal(`Error during ingestion: ${error.message}`);
+                showToast(`Error: ${error.message}`, 'error');
+            }
+        },
+        onCancel: () => {
+            console.log('User cancelled ingestion');
+        }
+    });
+}
+
+// Setup function called when documents panel opens
+let documentsListenersSetup = false;
+
+function setupDocumentsEventListeners() {
+    console.log('Setting up documents listeners...');
+    
+    // Always reload documents when panel opens
+    loadDocuments();
+    
+    // Only set up event listeners once
+    if (documentsListenersSetup) {
+        console.log('Documents listeners already set up, just reloaded data');
         return;
     }
-    
-    showNotification('🔄 Starting document re-indexing...', 'info');
-    
-    try {
-        const response = await fetch('/ingest-all', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            showNotification('✅ All documents re-indexed successfully!', 'success');
-            alert('✅ Documents re-indexed! You can now search across all uploaded documents.');
-        } else {
-            showNotification(`❌ ${data.error || 'Re-indexing failed'}`, 'error');
-            alert(`❌ Error: ${data.error || 'Re-indexing failed'}`);
-        }
-    } catch (error) {
-        showNotification(`❌ Error: ${error.message}`, 'error');
-        alert(`❌ Error during re-indexing: ${error.message}`);
-    }
+    documentsListenersSetup = true;
 }
+
+// Export to global scope
+window.setupDocumentsEventListeners = setupDocumentsEventListeners;
+window.reIngestDocuments = reIngestDocuments;
+window.deleteDocument = deleteDocument;
