@@ -48,13 +48,19 @@ function sendMessage() {
         },
         body: JSON.stringify({
             message: message,
-            history: conversationHistory
+            history: conversationHistory,
+            chat_id: window.currentChatId || null
         })
     })
     .then(response => response.json())
     .then(data => {
         // Remove typing indicator
         removeTypingIndicator();
+        
+        // Store chat_id if returned
+        if (data.chat_id) {
+            window.currentChatId = data.chat_id;
+        }
         
         // Add assistant response
         if (data.response) {
@@ -290,7 +296,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.add('active');
         
         // Close all panels first
-        document.querySelectorAll('.documents-panel, .notes-panel, .todo-panel, .pomodoro-panel, .bookmarks-panel').forEach(panel => {
+        document.querySelectorAll('.documents-panel, .notes-panel, .todo-panel, .pomodoro-panel, .bookmarks-panel, .chat-history-panel').forEach(panel => {
             panel.classList.remove('active');
         });
         
@@ -330,6 +336,12 @@ document.querySelectorAll('.nav-item').forEach(item => {
                 if (typeof window.setupBookmarksEventListeners === 'function') {
                     window.setupBookmarksEventListeners();
                 }
+            } else if (view === 'chat-history') {
+                document.getElementById('chatHistoryPanel').classList.add('active');
+                // Ensure chat history event listeners are set up when panel opens
+                if (typeof window.setupChatHistoryEventListeners === 'function') {
+                    window.setupChatHistoryEventListeners();
+                }
             }
             // 'chat' view just shows the main chat area (no panel)
             
@@ -343,7 +355,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 
 // Close panel functionality
 function closePanel() {
-    document.querySelectorAll('.documents-panel, .notes-panel, .todo-panel, .pomodoro-panel, .bookmarks-panel').forEach(panel => {
+    document.querySelectorAll('.documents-panel, .notes-panel, .todo-panel, .pomodoro-panel, .bookmarks-panel, .chat-history-panel').forEach(panel => {
         panel.classList.remove('active');
     });
     
@@ -360,7 +372,7 @@ document.querySelectorAll('.close-btn').forEach(btn => {
 // Close all panels on page load and set Home as active
 window.addEventListener('load', () => {
     // Close all panels
-    document.querySelectorAll('.documents-panel, .notes-panel, .todo-panel, .pomodoro-panel, .bookmarks-panel').forEach(panel => {
+    document.querySelectorAll('.documents-panel, .notes-panel, .todo-panel, .pomodoro-panel, .bookmarks-panel, .chat-history-panel').forEach(panel => {
         panel.classList.remove('active');
     });
     

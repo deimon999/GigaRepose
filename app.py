@@ -62,7 +62,15 @@ try:
     from app import pomodoro_db
     pomodoro_db.init_db()
 except Exception as e:
-    print(f"âš  Warning: Could not initialize Pomodoro database: {e}")
+    print(f"âš  Warning: Could not initialize Pomodoro database: {e}")
+
+# Initialize Chat History Database
+try:
+    from app.chat_db import ChatDatabase
+    chat_db = ChatDatabase()
+except Exception as e:
+    print(f"⚠ Warning: Could not initialize Chat history database: {e}")
+    chat_db = None
 
 # Initialize Notes Database
 try:
@@ -126,9 +134,20 @@ def chat():
         data = request.json
         user_message = data.get('message', '')
         history = data.get('history', [])
+        chat_id = data.get('chat_id')  # Optional: ID of current chat
         
         if not user_message:
             return jsonify({'error': 'No message provided'}), 400
+        
+        # Create a new chat if chat_id not provided
+        if chat_db and not chat_id:
+            # Generate a title from the first message (first 50 chars)
+            title = user_message[:50] + ('...' if len(user_message) > 50 else '')
+            chat_id = chat_db.create_chat(title)
+        
+        # Save user message to database
+        if chat_db and chat_id:
+            chat_db.add_message(chat_id, 'user', user_message)
         
         # Get relevant context from Pinecone (if available)
         context = ""
@@ -193,8 +212,13 @@ Keep it simple, clean, and well-spaced."""
             response = response.replace('9ï¸âƒ£', '\n\n9ï¸âƒ£')
             response = response.strip()  # Remove leading/trailing whitespace
             
+            # Save assistant response to database
+            if chat_db and chat_id:
+                chat_db.add_message(chat_id, 'assistant', response)
+            
             return jsonify({
                 'response': response,
+                'chat_id': chat_id,
                 'status': 'success'
             })
         else:
@@ -357,6 +381,137 @@ Detailed Explanation:"""
     except Exception as e:
         print(f"Error in explain endpoint: {e}")
         return jsonify({'error': str(e)}), 500
+
+# ============= CHAT HISTORY API ENDPOINTS =============
+
+@app.route('/chat-history', methods=['GET'])
+def get_chat_history():
+    """Get all chat conversations"""
+    try:
+        if not chat_db:
+            return jsonify({'error': 'Chat history not available'}), 503
+        
+        chats = chat_db.get_all_chats()
+        return jsonify({'chats': chats, 'status': 'success'})
+    except Exception as e:
+        print(f"Error getting chat history: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/chat-history/<int:chat_id>', methods=['GET'])
+def get_chat(chat_id):
+    """Get a specific chat with all messages"""
+    try:
+        if not chat_db:
+            return jsonify({'error': 'Chat history not available'}), 503
+        
+        chat = chat_db.get_chat(chat_id)
+        if not chat:
+            return jsonify({'error': 'Chat not found'}), 404
+        
+        messages = chat_db.get_chat_messages(chat_id)
+        
+        return jsonify({
+            'chat': chat,
+            'messages': messages,
+            'status': 'success'
+        })
+    except Exception as e:
+        print(f"Error getting chat: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/chat-history', methods=['POST'])
+def create_chat():
+    """Create a new chat conversation"""
+    try:
+        if not chat_db:
+            return jsonify({'error': 'Chat history not available'}), 503
+        
+        data = request.json
+        title = data.get('title', 'New Conversation')
+        
+        chat_id = chat_db.create_chat(title)
+        
+        return jsonify({
+            'chat_id': chat_id,
+            'status': 'success'
+        })
+    except Exception as e:
+        print(f"Error creating chat: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/chat-history/<int:chat_id>', methods=['PUT'])
+def update_chat(chat_id):
+    """Update a chat's title"""
+    try:
+        if not chat_db:
+            return jsonify({'error': 'Chat history not available'}), 503
+        
+        data = request.json
+        title = data.get('title', '')
+        
+        if not title:
+            return jsonify({'error': 'Title is required'}), 400
+        
+        chat_db.update_chat_title(chat_id, title)
+        
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print(f"Error updating chat: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/chat-history/<int:chat_id>', methods=['DELETE'])
+def delete_chat(chat_id):
+    """Delete a chat conversation"""
+    try:
+        if not chat_db:
+            return jsonify({'error': 'Chat history not available'}), 503
+        
+        if chat_db.delete_chat(chat_id):
+            return jsonify({'status': 'success'})
+        return jsonify({'error': 'Chat not found'}), 404
+    except Exception as e:
+        print(f"Error deleting chat: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/chat-history/clear', methods=['POST'])
+def clear_chat_history():
+    """Clear all chat history"""
+    try:
+        if not chat_db:
+            return jsonify({'error': 'Chat history not available'}), 503
+        
+        chat_db.clear_all_history()
+        
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print(f"Error clearing chat history: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/chat-history/search', methods=['POST'])
+def search_chat_history():
+    """Search through chat messages"""
+    try:
+        if not chat_db:
+            return jsonify({'error': 'Chat history not available'}), 503
+        
+        data = request.json
+        query = data.get('query', '')
+        
+        if not query:
+            return jsonify({'error': 'Search query is required'}), 400
+        
+        results = chat_db.search_messages(query)
+        
+        return jsonify({
+            'results': results,
+            'count': len(results),
+            'status': 'success'
+        })
+    except Exception as e:
+        print(f"Error searching chat history: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# ============= DOCUMENTS API ENDPOINTS =============
 
 def allowed_file(filename):
     """Check if file extension is allowed"""

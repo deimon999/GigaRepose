@@ -8,6 +8,7 @@
     <meta http-equiv="Expires" content="0">
     <title>Nexus - AI Assistant</title>
     <link rel="stylesheet" href="/static/css/style.css?v=999">
+    <link rel="stylesheet" href="/static/css/chat_history.css">
 </head>
 <body>
     <div class="app-container">
@@ -68,6 +69,12 @@
                             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                         </svg>
                         <span>Bookmarks</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="chat-history">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0 118 0z"/>
+                        </svg>
+                        <span>History</span>
                     </a>
                 </nav>
             </div>
@@ -362,6 +369,22 @@
         </div>
     </div>
 
+    <!-- Chat History Panel -->
+    <div id="chatHistoryPanel" class="chat-history-panel">
+        <div class="chat-history-header">
+            <h3>💬 Chat History</h3>
+            <button class="close-btn" onclick="closePanel()">&times;</button>
+        </div>
+        <div class="chat-history-search">
+            <input type="text" id="searchChatHistory" placeholder="Search conversations...">
+        </div>
+        <div id="chatHistoryList" class="chat-history-list"></div>
+        <div class="chat-history-footer" style="padding: 20px 32px; border-top: 1px solid var(--border); display: flex; gap: 12px;">
+            <button class="new-chat-btn" onclick="startNewChat()" style="flex: 1;">+ New Chat</button>
+            <button class="clear-history-btn" onclick="clearAllChatHistory()" style="flex: 1; background: #ef4444;">Clear All</button>
+        </div>
+    </div>
+
     <!-- Explain Modal -->
     <div id="explainModal" class="custom-modal hidden">
         <div class="modal-content">
@@ -382,5 +405,6 @@
     <script src="/static/js/todos.js"></script>
     <script src="/static/js/pomodoro.js"></script>
     <script src="/static/js/bookmarks.js"></script>
+    <script src="/static/js/chat_history.js"></script>
 </body>
 </html>

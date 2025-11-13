@@ -165,11 +165,12 @@ function escapeHtml(text) {
 
 // Show notification
 function showNotification(message, type = 'info') {
-    // Simple console log for now - you can enhance this
     console.log(`[${type.toUpperCase()}] ${message}`);
     
-    // You can add a toast notification library here if needed
-    // For now, we'll just use console
+    // Use toast notifications if available
+    if (typeof showToast === 'function') {
+        showToast(message, type);
+    }
 }
 
 // Re-ingest all documents to Pinecone
