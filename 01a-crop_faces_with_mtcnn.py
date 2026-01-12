@@ -9,7 +9,11 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 physical_devices = tf.config.list_physical_devices('GPU')
 print(physical_devices)
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+if len(physical_devices) > 0:
+    try:
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    except RuntimeError as e:
+        print(e)
 
 base_path = '.\\train_sample_videos\\'
 

@@ -4,8 +4,8 @@ import json
 import http.client, urllib.request, urllib.parse, urllib.error, base64
 
 base_path = '.\\train_sample_videos\\'
-AZURE_COMPUTER_VISION_NAME = '----REPLACE-WITH-YOUR-SERVICE-NAME----'  # e.g. xxxxxxxxxx.cognitiveservices.azure.com
-AZURE_COMPUTER_VISION_API_KEY = '----REPLACE-WITH-YOUR-KEY----'
+AZURE_COMPUTER_VISION_NAME = os.getenv('AZURE_COMPUTER_VISION_NAME', '----REPLACE-WITH-YOUR-SERVICE-NAME----')
+AZURE_COMPUTER_VISION_API_KEY = os.getenv('AZURE_COMPUTER_VISION_KEY', '----REPLACE-WITH-YOUR-KEY----')
 
 def get_filename_only(file_path):
     file_basename = os.path.basename(file_path)

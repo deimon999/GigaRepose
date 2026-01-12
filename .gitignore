@@ -131,3 +131,31 @@ dmypy.json
 #temp dataset folders
 tmp_*/
 mtcnn/
+
+# Dataset folders (large files)
+Dataset/
+prepared_dataset/
+split_dataset/
+train_sample_videos/
+FaceForensics/dataset/DeepFakes/faceswap-master/
+FaceForensics/dataset/FaceSwapKowalski/
+
+# Uploaded files
+uploads/
+
+# Model checkpoints (large files)
+tmp_checkpoint/
+*.h5
+*.hdf5
+*.pkl
+*.model
+
+# Training logs and temporary files
+training_log*.txt
+training_progress.json
+contact_messages.json
+email_errors.txt
+email_notifications.txt
+
+# Image files in root
+img/

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepFake Detection Studio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <a href="/" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 15px;">
+                    <i class="fas fa-arrow-left" style="font-size: 1.2rem;"></i>
+                    <i class="fas fa-shield-alt"></i>
+                    <h1>DEEPFAKE ANALYZER</h1>
+                </a>
+            </div>
+            <div class="header-actions">
+                <button class="action-btn" onclick="showFeatures()">
+                    <i class="fas fa-magic"></i> Advanced Features
+                </button>
+                <button class="action-btn" onclick="showTrainingSamples()">
+                    <i class="fas fa-database"></i> Training Data
+                </button>
+                <button class="action-btn" onclick="showStats()">
+                    <i class="fas fa-chart-bar"></i> Statistics
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h2>Upload Image or Video</h2>
+                    <p>Drag and drop or click to select</p>
+                    <p class="file-types">Supports: JPG, PNG, MP4, AVI, MOV</p>
+                    <input type="file" id="fileInput" accept="image/*,video/*" hidden>
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-folder-open"></i> Browse Files
+                    </button>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="preview-section" id="previewSection" style="display: none;">
+                    <div class="preview-header">
+                        <h3>Source Media</h3>
+                        <button class="close-btn" onclick="resetUpload()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="preview-content">
+                        <img id="previewImage" style="display: none;">
+                        <video id="previewVideo" controls style="display: none;"></video>
+                    </div>
+                    <button class="analyze-btn" id="analyzeBtn" onclick="analyzeMedia()">
+                        <i class="fas fa-search"></i> Analyze for Deepfakes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <h3>Analysis Results</h3>
+                </div>
+                
+                <div class="verdict-card" id="verdictCard">
+                    <div class="verdict-icon" id="verdictIcon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="verdict-text">
+                        <h2 id="verdictLabel">ANALYZING...</h2>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidenceFill"></div>
+                        </div>
+                        <p id="confidenceText">Confidence: 0%</p>
+                    </div>
+                </div>
+
+                <div class="details-grid">
+                    <div class="detail-card">
+                        <i class="fas fa-user"></i>
+                        <h4>Faces Detected</h4>
+                        <p id="facesCount">-</p>
+                    </div>
+                    <div class="detail-card">
+                        <i class="fas fa-film"></i>
+                        <h4>Frames Analyzed</h4>
+                        <p id="framesCount">-</p>
+                    </div>
+                    <div class="detail-card">
+                        <i class="fas fa-percent"></i>
+                        <h4>Detection Score</h4>
+                        <p id="detectionScore">-</p>
+                    </div>
+                </div>
+
+                <!-- Processed Image Display -->
+                <div class="processed-image" id="processedImageContainer" style="display: none;">
+                    <h4>Processed Image</h4>
+                    <img id="processedImage" alt="Processed result">
+                </div>
+
+                <!-- Temporal Analysis Chart -->
+                <div class="temporal-chart" id="temporalChart" style="display: none;">
+                    <h4>Frame-by-Frame Analysis</h4>
+                    <canvas id="chartCanvas"></canvas>
+                    <div class="chart-legend">
+                        <p><strong>Temporal Variance:</strong> <span id="temporalVariance">-</span></p>
+                        <p><strong>Consistency Score:</strong> <span id="consistencyScore">-</span>%</p>
+                        <p><strong>Detected Jumps:</strong> <span id="detectedJumps">-</span></p>
+                    </div>
+                </div>
+
+                <!-- Face Results Table -->
+                <div class="face-results" id="faceResults" style="display: none;">
+                    <h4>Individual Face Analysis</h4>
+                    <table id="faceResultsTable">
+                        <thead>
+                            <tr>
+                                <th>Face #</th>
+                                <th>Prediction</th>
+                                <th>Confidence</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="faceResultsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Features Modal -->
+        <div class="modal" id="featuresModal" style="display: none;">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h2><i class="fas fa-magic"></i> Advanced Features</h2>
+                    <button class="close-btn" onclick="closeFeatures()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="features-grid">
+                        <!-- Heatmap Feature -->
+                        <div class="feature-card" onclick="activateHeatmap()">
+                            <i class="fas fa-fire"></i>
+                            <h3>Attention Heatmap</h3>
+                            <p>Visualize suspicious regions in faces</p>
+                        </div>
+                        
+                        <!-- Batch Processing -->
+                        <div class="feature-card" onclick="activateBatchMode()">
+                            <i class="fas fa-layer-group"></i>
+                            <h3>Batch Processing</h3>
+                            <p>Analyze multiple files at once</p>
+                        </div>
+                        
+                        <!-- Comparison Mode -->
+                        <div class="feature-card" onclick="activateCompareMode()">
+                            <i class="fas fa-columns"></i>
+                            <h3>Compare Videos</h3>
+                            <p>Side-by-side comparison</p>
+                        </div>
+                        
+                        <!-- Temporal Analysis -->
+                        <div class="feature-card" onclick="activateTemporalMode()">
+                            <i class="fas fa-chart-line"></i>
+                            <h3>Temporal Analysis</h3>
+                            <p>Frame-by-frame detection graph</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Samples Modal -->
+        <div class="modal" id="trainingSamplesModal" style="display: none;">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h2><i class="fas fa-database"></i> Training Data Samples</h2>
+                    <button class="close-btn" onclick="closeTrainingSamples()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="samples-container">
+                        <div class="samples-section">
+                            <h3 class="fake-label"><i class="fas fa-times-circle"></i> Fake Samples</h3>
+                            <div id="fakeSamplesGrid" class="samples-grid"></div>
+                        </div>
+                        <div class="samples-section">
+                            <h3 class="real-label"><i class="fas fa-check-circle"></i> Real Samples</h3>
+                            <div id="realSamplesGrid" class="samples-grid"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Analyzing media...</p>
+                <p class="loading-subtext">This may take a few moments</p>
+            </div>
+        </div>
+
+        <!-- Stats Modal -->
+        <div class="modal" id="statsModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-chart-pie"></i> Dataset Statistics</h2>
+                    <button class="close-btn" onclick="closeStats()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="stat-row">
+                        <span>Training Samples:</span>
+                        <strong id="trainSamples">-</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Validation Samples:</span>
+                        <strong id="valSamples">-</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Test Samples:</span>
+                        <strong id="testSamples">-</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Total Videos:</span>
+                        <strong id="totalVideos">-</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Real Videos:</span>
+                        <strong id="realVideos">-</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Fake Videos:</span>
+                        <strong id="fakeVideos">-</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Model Status:</span>
+                        <strong id="modelStatus">-</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Detection Threshold:</span>
+                        <strong id="detectionThreshold">-</strong>
+                    </div>
+                    <div class="threshold-control">
+                        <label for="thresholdSlider">Adjust Sensitivity:</label>
+                        <input type="range" id="thresholdSlider" min="10" max="90" value="50" step="5">
+                        <span id="thresholdValue">0.50</span>
+                        <button onclick="updateThreshold()" class="update-btn">Apply</button>
+                        <p class="threshold-hint">
+                            Lower = More sensitive (detects more fakes)<br>
+                            Higher = More conservative (fewer false alarms)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}?v=1.4"></script>
+</body>
+</html>

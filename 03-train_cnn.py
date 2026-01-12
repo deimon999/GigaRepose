@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from distutils.dir_util import copy_tree
 import shutil
 import pandas as pd
@@ -9,6 +10,12 @@ import tensorflow as tf
 from tensorflow.keras import backend as K
 print('TensorFlow version: ', tf.__version__)
 
+# Check for quick mode
+QUICK_MODE = '--quick' in sys.argv or os.path.exists('./split_dataset_quick')
+if QUICK_MODE:
+    print('>> QUICK TRAINING MODE ENABLED')
+    print('   Training time: ~45-60 minutes')
+
 # Set to force CPU
 #os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 #if tf.test.gpu_device_name():
@@ -16,7 +23,12 @@ print('TensorFlow version: ', tf.__version__)
 #else:
 #    print("No GPU found")
 
-dataset_path = '.\\split_dataset\\'
+# Use quick dataset if available
+if QUICK_MODE and os.path.exists('.\\split_dataset_quick'):
+    dataset_path = '.\\split_dataset_quick\\'
+    print('   Using quick dataset')
+else:
+    dataset_path = '.\\split_dataset\\'
 
 tmp_debug_path = '.\\tmp_debug'
 print('Creating Directory: ' + tmp_debug_path)
@@ -29,7 +41,7 @@ def get_filename_only(file_path):
 
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras import applications
-from efficientnet.tfkeras import EfficientNetB0 #EfficientNetB1, EfficientNetB2, EfficientNetB3, EfficientNetB4, EfficientNetB5, EfficientNetB6, EfficientNetB7
+from tensorflow.keras.applications import EfficientNetB0 #EfficientNetB1, EfficientNetB2, EfficientNetB3, EfficientNetB4, EfficientNetB5, EfficientNetB6, EfficientNetB7
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import Adam
@@ -37,19 +49,26 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.models import load_model
 
 input_size = 128
-batch_size_num = 32
+# Larger batch size for quicker training
+batch_size_num = 64 if QUICK_MODE else 32
 train_path = os.path.join(dataset_path, 'train')
-val_path = os.path.join(dataset_path, 'val')
+# Check if 'val' or 'valid' exists
+if os.path.exists(os.path.join(dataset_path, 'valid')):
+    val_path = os.path.join(dataset_path, 'valid')
+else:
+    val_path = os.path.join(dataset_path, 'val')
 test_path = os.path.join(dataset_path, 'test')
 
 train_datagen = ImageDataGenerator(
     rescale = 1/255,    #rescale the tensor values to [0,1]
-    rotation_range = 10,
-    width_shift_range = 0.1,
-    height_shift_range = 0.1,
-    shear_range = 0.2,
-    zoom_range = 0.1,
+    rotation_range = 20,
+    width_shift_range = 0.2,
+    height_shift_range = 0.2,
+    shear_range = 0.3,
+    zoom_range = 0.2,
     horizontal_flip = True,
+    brightness_range = [0.8, 1.2],
+    channel_shift_range = 20.0,
     fill_mode = 'nearest'
 )
 
@@ -99,16 +118,32 @@ efficient_net = EfficientNetB0(
     pooling = 'max'
 )
 
+# Unfreeze layers for better learning
+# In quick mode with 10k images, we can unfreeze more layers
+if QUICK_MODE:
+    # Unfreeze all layers for 10k dataset - we have enough data
+    for layer in efficient_net.layers:
+        layer.trainable = True
+    print(f"QUICK MODE: All {len(efficient_net.layers)} layers unfrozen for training")
+else:
+    # Keep frozen for small datasets
+    for layer in efficient_net.layers:
+        layer.trainable = False
+
 model = Sequential()
 model.add(efficient_net)
+# Better architecture for deepfake detection
 model.add(Dense(units = 512, activation = 'relu'))
 model.add(Dropout(0.5))
 model.add(Dense(units = 128, activation = 'relu'))
+model.add(Dropout(0.3))
 model.add(Dense(units = 1, activation = 'sigmoid'))
 model.summary()
 
-# Compile model
-model.compile(optimizer = Adam(lr=0.0001), loss='binary_crossentropy', metrics=['accuracy'])
+# Lower learning rate for full model fine-tuning
+learning_rate = 0.00001 if QUICK_MODE else 0.001
+print(f"Using learning rate: {learning_rate}")
+model.compile(optimizer = Adam(learning_rate=learning_rate), loss='binary_crossentropy', metrics=['accuracy'])
 
 checkpoint_filepath = '.\\tmp_checkpoint'
 print('Creating Directory: ' + checkpoint_filepath)
@@ -118,8 +153,9 @@ custom_callbacks = [
     EarlyStopping(
         monitor = 'val_loss',
         mode = 'min',
-        patience = 5,
-        verbose = 1
+        patience = 5 if QUICK_MODE else 5,  # More patience for proper training
+        verbose = 1,
+        restore_best_weights = True
     ),
     ModelCheckpoint(
         filepath = os.path.join(checkpoint_filepath, 'best_model.h5'),
@@ -130,9 +166,9 @@ custom_callbacks = [
     )
 ]
 
-# Train network
-num_epochs = 20
-history = model.fit_generator(
+# More epochs for proper training
+num_epochs = 25 if QUICK_MODE else 30
+history = model.fit(
     train_generator,
     epochs = num_epochs,
     steps_per_epoch = len(train_generator),
