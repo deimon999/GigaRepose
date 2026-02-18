@@ -336,6 +336,12 @@ document.querySelectorAll('.nav-item').forEach(item => {
                 if (typeof window.setupBookmarksEventListeners === 'function') {
                     window.setupBookmarksEventListeners();
                 }
+            } else if (view === 'game') {
+                document.getElementById('gamePanel').classList.add('active');
+                // Initialize game when panel opens
+                if (typeof initGame === 'function') {
+                    initGame();
+                }
             } else if (view === 'chat-history') {
                 document.getElementById('chatHistoryPanel').classList.add('active');
                 // Ensure chat history event listeners are set up when panel opens

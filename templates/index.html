@@ -70,6 +70,15 @@
                         </svg>
                         <span>Bookmarks</span>
                     </a>
+                    <a href="#" class="nav-item" data-view="game">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                            <circle cx="8" cy="14" r="1"/>
+                            <circle cx="16" cy="14" r="1"/>
+                        </svg>
+                        <span>Brain Break</span>
+                    </a>
                     <a href="#" class="nav-item" data-view="chat-history">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0 118 0z"/>
@@ -385,6 +394,71 @@
         </div>
     </div>
 
+    <!-- Game Panel (Snake Game) -->
+    <div id="gamePanel" class="game-panel">
+        <div class="game-header">
+            <h3>🎮 Brain Break - Snake Game</h3>
+            <button class="close-btn" onclick="closePanel()">&times;</button>
+        </div>
+        
+        <!-- Game Stats -->
+        <div style="padding: 16px 32px; border-bottom: 1px solid var(--border);">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
+                <div style="padding: 12px; background: rgba(139, 92, 246, 0.1); border-radius: 10px;">
+                    <div style="font-size: 24px; font-weight: 700; color: var(--accent-primary);" id="gameScore">0</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Score</div>
+                </div>
+                <div style="padding: 12px; background: rgba(99, 102, 241, 0.1); border-radius: 10px;">
+                    <div style="font-size: 24px; font-weight: 700; color: #6366f1;" id="gameLength">1</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Length</div>
+                </div>
+                <div style="padding: 12px; background: rgba(251, 191, 36, 0.1); border-radius: 10px;">
+                    <div style="font-size: 24px; font-weight: 700; color: #fbbf24;" id="highScore">0</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">High Score</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Canvas -->
+        <div style="padding: 24px 32px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+            <div style="position: relative;">
+                <canvas id="gameCanvas" style="border: 2px solid var(--border); border-radius: 12px; background: #0f172a; box-shadow: 0 10px 40px rgba(139, 92, 246, 0.2);"></canvas>
+                <div id="gameMessage" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; font-weight: 700; color: #fbbf24; text-shadow: 0 0 20px rgba(251, 191, 36, 0.5); opacity: 0; transition: opacity 0.3s; pointer-events: none;"></div>
+            </div>
+            
+            <!-- Game Status -->
+            <div style="text-align: center;">
+                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">
+                    Status: <span id="gameStatus" style="color: var(--accent-primary);">Ready</span>
+                </div>
+                <div style="font-size: 14px; color: var(--text-secondary);">
+                    Use Arrow Keys or WASD to move • Press any key to start
+                </div>
+            </div>
+            
+            <!-- Game Controls -->
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+                <button onclick="startGame()" style="padding: 12px 24px; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    ▶️ Start
+                </button>
+                <button onclick="pauseGame()" style="padding: 12px 24px; background: linear-gradient(135deg, #f59e0b, #f97316); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    ⏸️ Pause
+                </button>
+                <button onclick="resetGame()" style="padding: 12px 24px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    🔄 Reset
+                </button>
+            </div>
+            
+            <!-- Instructions -->
+            <div style="background: rgba(139, 92, 246, 0.05); border: 1px solid var(--border); border-radius: 12px; padding: 16px; max-width: 400px; text-align: center;">
+                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">📖 How to Play</div>
+                <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+                    Eat the golden food to grow longer! Avoid hitting walls and yourself. The game speeds up as you score more points. Perfect for a quick study break! 🍎
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Explain Modal -->
     <div id="explainModal" class="custom-modal hidden">
         <div class="modal-content">
@@ -406,5 +480,6 @@
     <script src="/static/js/pomodoro.js"></script>
     <script src="/static/js/bookmarks.js"></script>
     <script src="/static/js/chat_history.js"></script>
+    <script src="/static/js/game.js"></script>
 </body>
 </html>
