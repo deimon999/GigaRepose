@@ -44,7 +44,7 @@ def monitor_performance(route_name):
 
 # Import components (with graceful fallback for development)
 try:
-    from app.llm_client import LLMClient
+    from models.llm_client import LLMClient
     llm_client = LLMClient()
     print("âœ“ LLM client initialized successfully")
 except Exception as e:
@@ -94,7 +94,7 @@ except Exception as e:
 retriever = None
 if os.getenv("ENABLE_RETRIEVER") == "1":
     try:
-        from app.retriever import Retriever
+        from models.retriever import Retriever
         retriever = Retriever()
         print("âœ“ Retriever initialized successfully")
     except Exception as e:
@@ -105,7 +105,7 @@ else:
 
 # Initialize document manager
 try:
-    from app.document_manager import DocumentManager
+    from models.document_manager import DocumentManager
     doc_manager = DocumentManager()
     print("âœ“ Document manager initialized successfully")
 except Exception as e:
@@ -595,7 +595,7 @@ def delete_document(doc_id):
 def ingest_all_documents():
     """Re-ingest all documents into Pinecone"""
     try:
-        from app.ingest import DocumentIngestor
+        from models.ingest import DocumentIngestor
         
         print("Starting document ingestion...")
         ingestor = DocumentIngestor()
