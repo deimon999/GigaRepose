@@ -104,28 +104,34 @@ python app.py
 
 <table>
 <tr>
-<td align="center" width="25%">
+<td align="center" width="20%">
 
 #### 📝 Notes Manager
 Create & organize study notes with categories, tags, and full search
 
 </td>
-<td align="center" width="25%">
+<td align="center" width="20%">
 
 #### ✅ Todo List
 Manage tasks with priorities, due dates, and progress tracking
 
 </td>
-<td align="center" width="25%">
+<td align="center" width="20%">
 
 #### ⏱️ Pomodoro Timer
 25-min focus sessions with break tracking and analytics
 
 </td>
-<td align="center" width="25%">
+<td align="center" width="20%">
 
 #### 🔖 Bookmarks
 Save resources with categories, tags, and descriptions
+
+</td>
+<td align="center" width="20%">
+
+#### 🎮 Brain Break Game
+Classic Snake game with high scores for study breaks
 
 </td>
 </tr>
@@ -428,6 +434,37 @@ Navigate to: **http://localhost:5000**
 - Tutorial videos
 - Online courses
 - Reference materials
+
+</details>
+
+<details>
+<summary><b>🎮 Brain Break - Snake Game</b></summary>
+<br>
+
+**Classic Snake Gameplay:**
+- Smooth controls with Arrow keys or WASD
+- Touch controls for mobile devices
+- Gradient snake with glowing effects
+- Grid-based retro design
+
+**Game Features:**
+- Score tracking with real-time display
+- Snake length counter
+- High score persistence (localStorage)
+- Progressive difficulty (speeds up)
+- Pause and resume functionality
+
+**Visual Polish:**
+- Glass morphism design matching app theme
+- Animated food with glow effects
+- Colorful gradient snake head
+- Game over detection and restart
+
+**Perfect For:**
+- Quick 5-minute study breaks
+- Pomodoro break periods
+- Mental refresh between tasks
+- Fun productivity reward
 
 </details>
 
